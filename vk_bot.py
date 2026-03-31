@@ -348,6 +348,8 @@ def handle_resume(user_id):
     
     send_message(user_id, text, get_resume_keyboard())
 
+# ... (начало кода такое же) ...
+
 # === ОСНОВНОЙ ЦИКЛ ===
 def main():
     print("\n🖤 Ворон Кар (VK) запущен...")
@@ -360,13 +362,14 @@ def main():
             if event.type == VkBotEventType.MESSAGE_NEW:
                 message = event.obj.message
                 user_id = message['from_id']
-                text = message['text'].lower().strip()
+                text = message['text'].strip()
+                text_lower = text.lower()
                 
                 logging.info(f"Сообщение от {user_id}: {text}")
                 user = get_user_data(user_id)
                 
                 # === КНОПКА "В МЕНЮ" ===
-                if text == 'в меню' or text == '🔙':
+                if text_lower == 'в меню' or '🔙' in text:
                     user["interview_mode"] = False
                     user["test_answers"] = None
                     user["waiting_feedback"] = False
@@ -374,7 +377,7 @@ def main():
                     continue
                 
                 # === СТОП → МЕНЮ ===
-                if text == 'стоп' or text == '🛑':
+                if text_lower == 'стоп' or '🛑' in text:
                     user["interview_mode"] = False
                     user["test_answers"] = None
                     user["waiting_feedback"] = False
@@ -389,20 +392,20 @@ def main():
                     user["waiting_feedback"] = False
                     continue
                 
-                # === ОСНОВНЫЕ КОМАНДЫ ===
-                if text in ['привет', '/start', 'старт', 'меню']:
+                # === ОСНОВНЫЕ КОМАНДЫ И КНОПКИ ===
+                if text_lower in ['привет', '/start', 'старт', 'меню']:
                     handle_start(user_id)
                 
-                elif 'вакансии' in text or '💼' in text:
+                elif 'вакансии' in text_lower or '💼' in text:
                     handle_vacancies(user_id)
                 
-                elif 'задание' in text or '📋' in text:
+                elif 'задание' in text_lower or '📋' in text:
                     handle_tasks(user_id)
                 
-                elif 'прогресс' in text or '🏆' in text:
+                elif 'прогресс' in text_lower or '🏆' in text:
                     handle_progress(user_id)
                 
-                elif text == 'начать тест' or text == 'начатьтест':
+                elif text_lower == 'начать тест' or text_lower == 'начатьтест':
                     user["test_answers"] = []
                     user["test_current"] = 0
                     user["interview_mode"] = False
@@ -415,55 +418,67 @@ def main():
                     keyboard.add_button('🔙 В меню', color=VkKeyboardColor.SECONDARY)
                     send_message(user_id, f"🧪 Вопрос 1/3\n\n{question['question']}", keyboard.get_keyboard())
                 
-                elif 'тест' in text or '🧪' in text:
+                elif 'тесты' in text_lower or '🧪' in text:
                     handle_tests(user_id)
                 
-                elif 'навыки' in text or '🛠️' in text:
+                elif 'навыки' in text_lower or '🛠️' in text or '🔧' in text:
                     handle_skills(user_id)
                 
-                elif 'резюме' in text or '📄' in text:
+                elif 'резюме' in text_lower or '📄' in text:
                     handle_resume(user_id)
                 
-                elif 'ресурсы' in text or '📚' in text:
+                elif 'ресурсы' in text_lower or '📚' in text:
                     handle_resources(user_id)
                 
-                elif 'курсы' in text:
+                elif 'курсы' in text_lower:
                     handle_resources(user_id, 'курсы')
-                elif 'книги' in text:
+                elif 'книги' in text_lower:
                     handle_resources(user_id, 'книги')
-                elif 'инструменты' in text:
+                elif 'инструменты' in text_lower:
                     handle_resources(user_id, 'инструменты')
-                elif 'сообщества' in text:
+                elif 'сообщества' in text_lower:
                     handle_resources(user_id, 'сообщества')
                 
-                elif 'полезное' in text or '📬' in text:
+                elif 'полезное' in text_lower or '📬' in text:
                     handle_useful(user_id)
                 
-                elif 'обратная связь' in text or '💬' in text:
+                elif 'обратная связь' in text_lower or '💬' in text:
                     handle_feedback(user_id)
                 
-                elif 'собеседование' in text or '🎤' in text:
+                elif 'собеседование' in text_lower or '🎤' in text:
                     handle_interview(user_id)
                 
+                # === СОПРОВОДИТЕЛЬНОЕ (кнопка обрезается!) ===
+                elif 'сопроводит' in text_lower or '✉️' in text or 'сопроводительное' in text_lower:
+                    send_message(user_id, "✉️ Генератор сопроводительного письма\n\nНапиши:\n1. Твоё имя\n2. Позиция (вакансия)\n3. Компания\n4. 3-5 навыков (через запятую)\n5. Контакты\n6. Опыт (необязательно)\n\nПример:\nАнна, SMM-менеджер, Digital Agency, контент/аналитика, @anna, 2 года в маркетинге", get_main_keyboard())
+                    user["cover_letter_mode"] = True
+                
                 # === НАЧАТЬ ПРАКТИКУ ===
-                elif 'начать практику' in text or 'начатьпрактику' in text:
+                elif 'начать практику' in text_lower or 'начатьпрактику' in text_lower:
                     user["interview_mode"] = True
                     user["interview_question_idx"] = 0
                     user["test_answers"] = None
+                    user["cover_letter_mode"] = False
                     q_data = interview_questions[0]
-                    send_message(user_id, f"🎤 Вопрос 1/{len(interview_questions)}\n\n{q_data['question']}\n\n💡 Подсказка: {q_data['tips']}\n\nНапиши ответ 👇")
+                    send_message(user_id, f"🎤 Вопрос 1/{len(interview_questions)}\n\n{q_data['question']}\n\n💡 Подсказка: {q_data['tips']}\n\nНапиши свой ответ 👇")
+                
+                # === ДАВАЙ (для собеседования) ===
+                elif text_lower == 'давай' and user.get("interview_mode", False):
+                    q_idx = user.get("interview_question_idx", 0)
+                    q_data = interview_questions[q_idx]
+                    send_message(user_id, f"🎤 Вопрос {q_idx + 1}/{len(interview_questions)}\n\n{q_data['question']}\n\n💡 Подсказка: {q_data['tips']}\n\nНапиши свой ответ 👇")
                 
                 # === ОБРАБОТКА СОБЕСЕДОВАНИЯ ===
                 elif user.get("interview_mode", False):
                     q_idx = user.get("interview_question_idx", 0)
                     q_data = interview_questions[q_idx]
-                    user_answer = text.lower()
+                    user_answer = text_lower
                     
                     found_keywords = [kw for kw in q_data["keywords"] if kw in user_answer]
                     keyword_count = len(found_keywords)
                     
                     if keyword_count >= 2:
-                        feedback = f"✅ Отличный ответ!\n\nТы упомянул: {', '.join(found_keywords)}\n\n💡 Пример:\n{q_data['example_answer']}"
+                        feedback = f"✅ Отличный ответ!\n\nТы упомянул: {', '.join(found_keywords)}\n\n💡 Пример идеального ответа:\n{q_data['example_answer']}"
                         xp_gain = 25
                     elif keyword_count == 1:
                         feedback = f"👍 Неплохо!\n\nТы упомянул: {found_keywords[0]}\n\n💡 Пример:\n{q_data['example_answer']}"
@@ -489,7 +504,7 @@ def main():
                     answer_type = None
                     for q in career_test_questions:
                         for opt in q["options"]:
-                            if opt["text"].lower() in text:
+                            if opt["text"].lower() in text_lower:
                                 answer_type = opt["type"]
                                 break
                         if answer_type:
@@ -508,8 +523,8 @@ def main():
                             add_xp(user_id, 100)
                             
                             result = career_test_results[result_type]
-                            text = f"🎉 Тест завершён!\n\n{result['title']}\n{result['desc']}\n\n🔍 Подходящие профессии:\n" + "\n".join([f"• {p}" for p in result['professions']]) + f"\n\n⚡ +100 XP"
-                            send_message(user_id, text, get_main_keyboard())
+                            text_msg = f"🎉 Тест завершён!\n\n{result['title']}\n{result['desc']}\n\n🔍 Подходящие профессии:\n" + "\n".join([f"• {p}" for p in result['professions']]) + f"\n\n⚡ +100 XP"
+                            send_message(user_id, text_msg, get_main_keyboard())
                             user["test_answers"] = None
                         else:
                             question = career_test_questions[user["test_current"]]
@@ -520,24 +535,30 @@ def main():
                             keyboard.add_line()
                             keyboard.add_button('🔙 В меню', color=VkKeyboardColor.SECONDARY)
                             send_message(user_id, f"🧪 Вопрос {user['test_current']+1}/3\n\n{question['question']}", keyboard.get_keyboard())
+                    else:
+                        # Если не распознали ответ на тест
+                        send_message(user_id, "⚠️ Выбери один из вариантов выше или нажми '🔙 В меню'")
                     continue
                 
                 # === ДОБАВИТЬ НАВЫК ===
-                elif 'добавить навык' in text:
-                    parts = text.split('добавить навык')
+                elif 'добавить навык' in text_lower:
+                    parts = text_lower.split('добавить навык')
                     if len(parts) > 1 and parts[1].strip():
                         skill_name = parts[1].strip()
-                        if len(skill_name) >= 3 and skill_name not in user["skills"]:
-                            user["skills"][skill_name] = 1
-                            add_xp(user_id, 10)
-                            send_message(user_id, f"✅ Навык добавлен!\n\n🛠️ {skill_name} — уровень 1/5\n\n⚡ +10 XP", get_main_keyboard())
+                        if len(skill_name) >= 3:
+                            if skill_name not in user["skills"]:
+                                user["skills"][skill_name] = 1
+                                add_xp(user_id, 10)
+                                send_message(user_id, f"✅ Навык добавлен!\n\n🛠️ {skill_name.title()} — уровень 1/5\n\n⚡ +10 XP", get_main_keyboard())
+                            else:
+                                send_message(user_id, "⚠️ Этот навык уже добавлен!", get_main_keyboard())
                         else:
-                            send_message(user_id, "⚠️ Введи название (мин. 3 символа) или навык уже добавлен!")
+                            send_message(user_id, "⚠️ Название должно быть минимум 3 символа!\n\nПример: добавить навык Python", get_main_keyboard())
                     else:
-                        send_message(user_id, "⚠️ Напиши: 'добавить навык [название]'\n\nПример: добавить навык коммуникация")
+                        send_message(user_id, "⚠️ Напиши: 'добавить навык [название]'\n\nПример: добавить навык коммуникация", get_main_keyboard())
                 
                 # === ОБРАБОТКА КНОПОК ВАКАНСИЙ ===
-                elif '✅' in text and 'подходит' in text:
+                elif '✅' in text and 'подходит' in text_lower:
                     vac_id = user["current_vacancy"]
                     if vac_id < len(vacancies):
                         if vac_id not in user["matched_vacancies"]:
@@ -547,16 +568,16 @@ def main():
                         send_message(user_id, f"✅ Отлично! Вакансия добавлена.\n\n⚡ +20 XP")
                         handle_vacancies(user_id)
                 
-                elif '❌' in text or 'не подходит' in text:
+                elif '❌' in text or 'не подходит' in text_lower:
                     user["current_vacancy"] += 1
                     handle_vacancies(user_id)
                 
-                elif '⏭️' in text or 'далее' in text:
+                elif '⏭️' in text or 'далее' in text_lower:
                     user["current_vacancy"] += 1
                     handle_vacancies(user_id)
                 
                 # === ВЫПОЛНИЛ ЗАДАНИЕ ===
-                elif '✅' in text and 'выполнил' in text:
+                elif '✅' in text and 'выполнил' in text_lower:
                     available = [i for i in range(len(daily_tasks)) if i not in user["completed_tasks"]]
                     if available:
                         task_id = random.choice(available)
@@ -566,11 +587,11 @@ def main():
                         add_xp(user_id, xp)
                         send_message(user_id, f"✅ Выполнено!\n\n+{xp} XP", get_main_keyboard())
                 
-                elif '🔄' in text or 'другое' in text:
+                elif '🔄' in text or 'другое' in text_lower:
                     handle_tasks(user_id)
                 
                 # === ЕЩЁ СОВЕТ ===
-                elif 'ещё совет' in text or 'ещёсовет' in text:
+                elif 'ещё совет' in text_lower or 'ещёсовет' in text_lower:
                     handle_useful(user_id)
                 
                 else:
