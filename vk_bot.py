@@ -571,7 +571,7 @@ def get_profession_keyboard():
 
 # === ФУНКЦИИ ===
 def get_user_data(user_id):
-    if user_id not in users_data
+    if user_id not in users_data:
         users_data[user_id] = {
             "xp": 0, "level": 1, "tasks_completed": 0,
             "achievements": [], "streak": 0, "last_visit": None,
