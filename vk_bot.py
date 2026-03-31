@@ -29,7 +29,7 @@ flask_thread.daemon = True
 flask_thread.start()
 
 # === НАСТРОЙКИ ===
-VK_TOKEN = 'vk1.a.LKl0bvHMF1VamJQb-L8_k9HpPwRquBjAus3KxMxMH140LsAJJfYsS'  # ← Вставь свой токен
+VK_TOKEN = 'vk1.a.agr3ybcPZs9l_lQ1mjy_lCcPu6TFPYQqjNY-eElqLpM05PzxXBdHGsdRss4aF3Fxj_vxr9hHdKiPfBXRZO-YwB7HCDVfWKAl5e_Fq_QNWBTSiMz72uvcfdZ6a8XqqoEawr9sg0wf954Ey0xDglS0K1Z16PgOvxHBGHC9imv7iiiS1vQOL7rsf_iMP3Y11LwPrTX2MsOsxkmVDrGoJdkvhw'  # ← Вставь свой токен
 GROUP_ID = 236725121  # ← Вставь свой ID
 
 # Инициализация
