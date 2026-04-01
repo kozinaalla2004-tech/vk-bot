@@ -348,8 +348,6 @@ def handle_resume(user_id):
     
     send_message(user_id, text, get_resume_keyboard())
 
-# ... (начало кода такое же) ...
-
 # === ОСНОВНОЙ ЦИКЛ ===
 def main():
     print("\n🖤 Ворон Кар (VK) запущен...")
@@ -365,14 +363,26 @@ def main():
                 text = message['text'].strip()
                 text_lower = text.lower()
                 
-                logging.info(f"Сообщение от {user_id}: {text}")
+                logging.info(f"📩 От {user_id}: {text}")
                 user = get_user_data(user_id)
+                
+                # === ПРИВЕТ / СТАРТ / МЕНЮ (ПЕРВЫМ!) ===
+                if text_lower in ['привет', '/start', 'старт', 'меню', 'menu', 'help']:
+                    logging.info(f"✅ Команда привет от {user_id}")
+                    # Сброс всех режимов
+                    user["interview_mode"] = False
+                    user["test_answers"] = None
+                    user["waiting_feedback"] = False
+                    user["cover_letter_mode"] = False
+                    handle_start(user_id)
+                    continue
                 
                 # === КНОПКА "В МЕНЮ" ===
                 if text_lower == 'в меню' or '🔙' in text:
                     user["interview_mode"] = False
                     user["test_answers"] = None
                     user["waiting_feedback"] = False
+                    user["cover_letter_mode"] = False
                     send_message(user_id, "🔙 Главное меню", get_main_keyboard())
                     continue
                 
@@ -381,6 +391,7 @@ def main():
                     user["interview_mode"] = False
                     user["test_answers"] = None
                     user["waiting_feedback"] = False
+                    user["cover_letter_mode"] = False
                     send_message(user_id, "🔙 Возврат в главное меню", get_main_keyboard())
                     continue
                 
@@ -393,10 +404,7 @@ def main():
                     continue
                 
                 # === ОСНОВНЫЕ КОМАНДЫ И КНОПКИ ===
-                if text_lower in ['привет', '/start', 'старт', 'меню']:
-                    handle_start(user_id)
-                
-                elif 'вакансии' in text_lower or '💼' in text:
+                if 'вакансии' in text_lower or '💼' in text:
                     handle_vacancies(user_id)
                 
                 elif 'задание' in text_lower or '📋' in text:
@@ -409,6 +417,7 @@ def main():
                     user["test_answers"] = []
                     user["test_current"] = 0
                     user["interview_mode"] = False
+                    user["cover_letter_mode"] = False
                     question = career_test_questions[0]
                     keyboard = VkKeyboard(one_time=False)
                     for opt in question["options"]:
@@ -448,8 +457,8 @@ def main():
                 elif 'собеседование' in text_lower or '🎤' in text:
                     handle_interview(user_id)
                 
-                # === СОПРОВОДИТЕЛЬНОЕ (кнопка обрезается!) ===
-                elif 'сопроводит' in text_lower or '✉️' in text or 'сопроводительное' in text_lower:
+                # === СОПРОВОДИТЕЛЬНОЕ ===
+                elif 'сопроводит' in text_lower or '✉️' in text:
                     send_message(user_id, "✉️ Генератор сопроводительного письма\n\nНапиши:\n1. Твоё имя\n2. Позиция (вакансия)\n3. Компания\n4. 3-5 навыков (через запятую)\n5. Контакты\n6. Опыт (необязательно)\n\nПример:\nАнна, SMM-менеджер, Digital Agency, контент/аналитика, @anna, 2 года в маркетинге", get_main_keyboard())
                     user["cover_letter_mode"] = True
                 
@@ -478,7 +487,7 @@ def main():
                     keyword_count = len(found_keywords)
                     
                     if keyword_count >= 2:
-                        feedback = f"✅ Отличный ответ!\n\nТы упомянул: {', '.join(found_keywords)}\n\n💡 Пример идеального ответа:\n{q_data['example_answer']}"
+                        feedback = f"✅ Отличный ответ!\n\nТы упомянул: {', '.join(found_keywords)}\n\n💡 Пример:\n{q_data['example_answer']}"
                         xp_gain = 25
                     elif keyword_count == 1:
                         feedback = f"👍 Неплохо!\n\nТы упомянул: {found_keywords[0]}\n\n💡 Пример:\n{q_data['example_answer']}"
@@ -536,8 +545,7 @@ def main():
                             keyboard.add_button('🔙 В меню', color=VkKeyboardColor.SECONDARY)
                             send_message(user_id, f"🧪 Вопрос {user['test_current']+1}/3\n\n{question['question']}", keyboard.get_keyboard())
                     else:
-                        # Если не распознали ответ на тест
-                        send_message(user_id, "⚠️ Выбери один из вариантов выше или нажми '🔙 В меню'")
+                        send_message(user_id, "⚠️ Выбери один из вариантов выше или напиши 'привет' для меню")
                     continue
                 
                 # === ДОБАВИТЬ НАВЫК ===
@@ -598,7 +606,7 @@ def main():
                     send_message(user_id, "Используй кнопки внизу или напиши 'привет' для меню", get_main_keyboard())
         
         except Exception as e:
-            logging.error(f"Ошибка обработки: {e}")
+            logging.error(f"❌ Ошибка обработки: {e}")
             continue
 
 if __name__ == '__main__':
